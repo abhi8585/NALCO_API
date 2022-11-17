@@ -65,8 +65,8 @@ def get_virtual_truck_details():
                     ON QN_Tbl_Vehicle_Load_Planning.Sales_Order_Number = QN_Tbl_Sales_Order_HDR.Sales_Order_Number
                     INNER JOIN QN_Tbl_Sales_Order_Detail
                     ON QN_Tbl_Sales_Order_Detail.Line_item_Number = QN_Tbl_Vehicle_Load_Planning.Line_item_Number
-                    INNER JOIN QN_Tbl_Virtual_Truck_Pre_Load_Mapping
-                    On QN_Tbl_Virtual_Truck_Pre_Load_Mapping.VehiclePlanningID = QN_Tbl_Vehicle_Load_Planning.PreLoadID
+                    INNER JOIN QN_Tbl_Virtual_Truck_Planning
+                    On QN_Tbl_Virtual_Truck_Planning.PreLoadID = QN_Tbl_Vehicle_Load_Planning.PreLoadID
                     where QN_Tbl_Sales_Order_HDR.Plan_Delivery_Date = '{0}' and QN_Tbl_Sales_Order_HDR.Customer_Code = '{1}'
                     """.format(dispatch_date, customer_code)
         cursor.execute(sql_query)
@@ -80,12 +80,12 @@ def get_virtual_truck_details():
             temp_obj["virtual_truck_number"] = temp["Virtual_Truck_Number"]
             temp_obj["dispatch_order_number"] = temp["Sales_Order_Number"]
             temp_obj["line_item_number"] = temp["Line_item_Number"]
-            # need to add sku code column after discussion with IDRIS JI
+            temp_obj["material_code"] = temp["Material_Code"]
             temp_obj["transportation_by"] = temp["Vehicle_Type"]
             temp_obj["transporter_code"] = temp["Transporter_Code"]
             temp_obj["truck_capacity"] = temp["Capacity_Of_Vehicle"]
             temp_obj["diameter"] = temp["Diameter"]
-            # need to add code for grade after discussion with IDRIS JI
+            temp_obj["grade"] = temp["Grade"]
             temp_obj["uts"] = temp["UTS_From"]
             temp_obj["elongation"] = temp["Elongation_From"]
             virtual_truck_data.append(temp_obj)

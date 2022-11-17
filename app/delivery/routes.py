@@ -321,7 +321,7 @@ def insert_vehicle_planning_details():
             for val in load_vehicle_mapping:
                 for temp in val["virtual_truck_numbers"]:
                     sql_query = """
-                            INSERT INTO QN_Tbl_Virtual_Truck_Pre_Load_Mapping (VehiclePlanningID, Virtual_Truck_Number)
+                            INSERT INTO QN_Tbl_Virtual_Truck_Planning (PreLoadID, Virtual_Truck_Number)
                             VALUES ({0},'{1}')
                     """.format(val["pre_load_id"], temp)
                     try:
@@ -366,7 +366,7 @@ def get_last_virtual_truck_number():
             return jsonify(status=200,last_virtual_truck_number=first_virtual_truck_number)
         else:
             sql_query = """
-                select MAX(Virtual_Truck_Number) as LAST_TRUCK_NUMBER from QN_Tbl_Virtual_Truck_Pre_Load_Mapping 
+                select MAX(Virtual_Truck_Number) as LAST_TRUCK_NUMBER from QN_Tbl_Virtual_Truck_Planning 
                         """
 
             cursor.execute(sql_query)
