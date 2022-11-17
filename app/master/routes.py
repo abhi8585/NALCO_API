@@ -15,8 +15,8 @@ import os
 # from app.base.util import hash_pass
 # from app.base.models import User
 # from flask_restful import Resource, Api
-from app.models import depovendor, depotomaster, depotopicker, depoinventory, pickup, destructiontomaster, destructioninventory
-from sqlalchemy import and_
+# from app.models import depovendor, depotomaster, depotopicker, depoinventory, pickup, destructiontomaster, destructioninventory
+# from sqlalchemy import and_
 
 
 
@@ -40,27 +40,27 @@ def make_database_connection():
 
 @blueprint.route('/get_customer_codes', methods=["GET","POST"])
 def get_customer_codes():
-    try:
-        sql_query = """
-                        select Customer_Code from QN_Tbl_Customer_Master
-                    """
-        cnxn = make_database_connection()
-        cursor = cnxn.cursor()
-        cursor.execute(sql_query)
-        columns = [column[0] for column in cursor.description]
-        results = []
-        customer_codes = []
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-        for temp in results:   
-            customer_codes.append(temp["Customer_Code"])    
-        return jsonify(status=200,data=customer_codes)
-    except:
-        return jsonify(status=500,message="Internal Server Error")
+    # try:
+    sql_query = """
+                    select Customer_Code from QN_Tbl_Customer_Master
+                """
+    cnxn = make_database_connection()
+    cursor = cnxn.cursor()
+    cursor.execute(sql_query)
+    columns = [column[0] for column in cursor.description]
+    results = []
+    customer_codes = []
+    for row in cursor.fetchall():
+        results.append(dict(zip(columns, row)))
+    for temp in results:   
+        customer_codes.append(temp["Customer_Code"])    
+    return jsonify(status=200,data=customer_codes)
+    # except Exception as e:
+    #     print(e)
+    return jsonify(status=500,message="Internal Server Error")
 
 
 # api to return the transporter codes for dropdown.
-
 @blueprint.route('/get_transporter_codes', methods=["GET","POST"])
 def get_transporter_codes():
     try:

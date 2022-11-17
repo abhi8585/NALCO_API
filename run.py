@@ -3,14 +3,13 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from flask_migrate import Migrate
 from flask import url_for
 from os import environ
 from sys import exit
 from decouple import config
 
 from config import config_dict
-from app import create_app, db
+from app import create_app
 
 
 
@@ -29,7 +28,7 @@ except KeyError:
     exit('Error: Invalid <config_mode>. Expected values [Debug, Production] ')
 
 app = create_app( app_config ) 
-migrate = Migrate(app, db)
+# migrate = Migrate(app, db)
 
 
 
