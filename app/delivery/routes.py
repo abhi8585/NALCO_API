@@ -39,51 +39,32 @@ def get_delivery_order():
             return jsonify(status=400,message="Please Select Dispatch Date!")
     except:
         return jsonify(status=400,message="Please Select Dispatch Date!")
-    try:
-        customer_code = data["customer_code"]
-        if customer_code == "" or customer_code == None:
-            return jsonify(status=400,message="Please Select Customer Code!")
-    except:
-        return jsonify(status=400,message="Please Select Customer Code!")
-    try:
-        transporter = data["transporter"]
-        if transporter == "" or transporter == None:
-            return jsonify(status=400,message="Please Select Transporter Code!")
-    except:
-        return jsonify(status=400,message="Please Select Transporter Code!")
-    try:
-        order_number = data["order_number"]
-        if order_number == "" or order_number == None:
-            return jsonify(status=400,message="Please Select Order Number!")
-    except:
-        return jsonify(status=400,message="Please Select Order Number!")
-    # exception handling done for reading input parameters
-    # print([dispatch_date,customer_code,transporter,order_number])
-
-    import pyodbc
-    cnxn = pyodbc.connect(driver='{FreeTDS}', host='115.124.119.236', database='NALCO_DISPATCH',
-                      trusted_connection='no', user='Aipalatte2', password='guest2@Nalco2022',
-                      TrustServerCertificate='yes')
+    default_query = """
+                select *
+                from QN_Tbl_Sales_Order_HDR
+                INNER JOIN QN_Tbl_Sales_Order_Transporter_Detail
+                ON ( QN_Tbl_Sales_Order_Transporter_Detail.Sales_Order_Number = QN_Tbl_Sales_Order_HDR.Sales_Order_Number)
+                WHERE QN_Tbl_Sales_Order_HDR.Plan_Delivery_Date = '{0}' 
+            """.format(dispatch_date)
+    for key, value in data.items():
+        if key == "customer_code":
+            temp_query = "AND QN_Tbl_Sales_Order_HDR.Customer_Code =  '{0}' ".format(value)
+            default_query = default_query + temp_query
+        if key == "order_number":
+            temp_query = "AND QN_Tbl_Sales_Order_HDR.Sales_Order_Number = '{0}' ".format(value)
+            default_query = default_query + temp_query
+        if key == "transporter":
+            temp_query = "AND QN_Tbl_Sales_Order_Transporter_Detail.Transporter_code = '{0}' ".format(value)
+            default_query = default_query + temp_query
+    cnxn = make_database_connection()
     cursor = cnxn.cursor()
-    sql_query = """ 
-        select *
-        from QN_Tbl_Sales_Order_HDR
-        INNER JOIN QN_Tbl_Sales_Order_Transporter_Detail
-        ON ( QN_Tbl_Sales_Order_Transporter_Detail.Sales_Order_Number = QN_Tbl_Sales_Order_HDR.Sales_Order_Number)
-        WHERE QN_Tbl_Sales_Order_HDR.Plan_Delivery_Date = '{0}' AND Customer_Code = '{1}'
-        AND QN_Tbl_Sales_Order_HDR.Sales_Order_Number = '{2}'
-        AND QN_Tbl_Sales_Order_Transporter_Detail.Transporter_code = '{3}'
-            """.format(dispatch_date,customer_code,order_number,transporter)
-    
-    cursor.execute(sql_query) 
+    cursor.execute(default_query) 
     columns = [column[0] for column in cursor.description]
     results = []
     main_results = []
     for row in cursor.fetchall():
         results.append(dict(zip(columns, row)))
     for temp in results:
-    # print(type(temp['Plan_Delivery_Date']))
-    # print(temp['Plan_Delivery_Date'])
         temp_obj  = {}
         temp_obj['delivery_date'] = temp['Plan_Delivery_Date'].strftime("%d-%m-%Y")
         temp_obj['order_number'] = temp['Sales_Order_Number']
@@ -95,7 +76,6 @@ def get_delivery_order():
         temp_obj['delivery_quantity'] = temp['Plan_Del_Qty']
         temp_obj["status"] = temp["Status"]
         main_results.append(temp_obj)
-    # print(main_results)
     return jsonify(status=200,data=main_results)
 
 
@@ -373,8 +353,16 @@ def get_last_virtual_truck_number():
         # First case if there is no V.T.No in database
         # Creating First V.T.No
         if len(cursor.fetchall()) == 0:
-            first_virtual_truck_number = "NL" + "0000"
+            # print(first_virtual_truck_number)
+            from datetime import datetime
+            currentDay = datetime.now().day
+            currentMonth = datetime.now().month
+            currentYear = datetime.now().year
+            first_virtual_truck_number = "VT" + str(currentDay) + str(currentMonth) + str(currentYear)[0:]
+            first_virtual_truck_number = first_virtual_truck_number + "0001"
+            # print(currentDay, currentMonth, currentYear)
             print(first_virtual_truck_number)
+
             return jsonify(status=200,last_virtual_truck_number=first_virtual_truck_number)
         else:
             sql_query = """
@@ -385,7 +373,19 @@ def get_last_virtual_truck_number():
             columns = [column[0] for column in cursor.description]
             results = []
             order_numbers = []
-            return jsonify(status=200, last_virtual_truck_number=cursor.fetchone()[0])
+            last_virtual_truck_number=cursor.fetchone()[0]
+            last_date = last_virtual_truck_number[2:4]
+            from datetime import datetime
+            currentDay = datetime.now().day
+            currentMonth = datetime.now().month
+            currentYear = datetime.now().year
+            if str(currentDay) == str(last_date):
+                return jsonify(status=200, last_virtual_truck_number = last_virtual_truck_number)
+            else:
+                first_virtual_truck_number = "VT" + str(currentDay) + str(currentMonth) + str(currentYear)[0:]
+                first_virtual_truck_number = first_virtual_truck_number + "0001"
+                print(first_virtual_truck_number)
+                return jsonify(status=200, last_virtual_truck_number=first_virtual_truck_number)
     except Exception as e:
         print(e)
         return jsonify(status=500,message="Internal Server Error")
