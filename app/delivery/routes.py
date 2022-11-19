@@ -1,17 +1,8 @@
 from email import message
-
-
-# from sympy import residue
-#from app import transporter
-#from tabulate import tabulate
 from app.delivery import blueprint
 from flask_restful import Resource, Api
 from flask import jsonify, render_template, redirect, request, url_for
 import json
-#from app.base.util import verify_pass
-#from app.models import audit, bag, depotomaster, depovendor, sku, auditsku, bagtosku, audittobag, disttobag, pickup, picktobag, deviatedbag, userinfo
-#from app import db
-#from app.models import depoinventory, deviateddepobag, depopickup
 import datetime
 
 #from app import mail

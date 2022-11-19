@@ -12,19 +12,6 @@ from flask import jsonify, render_template, redirect, url_for, abort, flash, req
     current_app, make_response
 # import pdfkit
 import os
-# from app.base.util import hash_pass
-# from app.base.models import User
-# from flask_restful import Resource, Api
-# from app.models import depovendor, depotomaster, depotopicker, depoinventory, pickup, destructiontomaster, destructioninventory
-# from sqlalchemy import and_
-
-
-
-
-
-
-
-
 
 # NALCO APIS
 
