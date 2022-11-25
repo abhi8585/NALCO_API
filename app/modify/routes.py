@@ -182,34 +182,59 @@ def modify_order():
     return jsonify(status=200,message="Order successfully Modified")
 
 
+
+def material_description(data,cursor):
+    # print(data["material_code"])
+    if data["material_code"] == "" or data["material_code"] == None:
+        return dict(status=400,message="Material code is NULL!")
+    else:
+        sql_query = """
+                        select Description from QN_Tbl_Material_Master where Material_Code = '{0}'
+                    """.format(data["material_code"])
+        try:
+            cursor.execute(sql_query)
+            columns = [column[0] for column in cursor.description]
+            # print(columns)
+            results = []
+            temp_data = cursor.fetchone()
+            if temp_data == None:
+                return dict(status=400,material_description="")
+            else:
+                # print(cursor.fetchone()[0])
+                return dict(status=200,material_description=temp_data[0])
+            # print(cursor.fetchone())
+            # print(cursor.fetchall())
+            # # print(len(cursor.fetchall()))
+            # if len(cursor.fetchall()) == 0:
+            #     return dict(status=400,message="Wrong Material Code")
+            # for row in cursor.fetchall():
+            #     # print(row[0])
+            #     results.append(dict(zip(columns, row)))
+            # print(results)
+            return dict(status=200) 
+        except Exception as e:
+            print(e)
+            # cnxn.rollback()
+            return dict(status=500,message="Internal Server Error!") 
+
+
 @blueprint.route('/get_material_description',methods=['GET','POST'])
 def get_material_description():
-    data = request.get_json(force=True)
+    # data = request.get_json(force=True)
+    material_code = request.args.get('material_code')
+    # print(material_code)
     try:
         cnxn = make_database_connection()
         cursor = cnxn.cursor()
     except:
         return jsonify(status=500, message="Error while connecting to Database")
     try:
-        if data["material_code"] == "" or data["material_code"] == None:
-            return jsonify(status=400,message="Material code is NULL!")
-        else:
-            # print(data["material_code"])
-            sql_query = """
-                            select Description from QN_Tbl_Material_Master where Material_Code = '{0}'
-                        """.format(data["material_code"])
-            try:
-                cursor.execute(sql_query)
-                columns = [column[0] for column in cursor.description]
-                results = []
-                for row in cursor.fetchall():
-                    results.append(dict(zip(columns, row)))
-                return jsonify(status=200,material_description=results[0]['Description']) 
-            except Exception as e:
-                print(e.message)
-                cnxn.rollback()
-                return jsonify(status=500,message="Internal Server Error!") 
-    except:
+        data = dict(material_code=material_code)
+        data = material_description(data,cursor)
+        # print(data)
+        return jsonify(data)
+    except Exception as e:
+        print(e)
         return jsonify(status=500,message="No Material code provided!")
 
 

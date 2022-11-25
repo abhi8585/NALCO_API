@@ -4,6 +4,9 @@ from flask_restful import Resource, Api
 from flask import jsonify, render_template, redirect, request, url_for
 import json
 import datetime
+# from helpers.connection import make_database_connection
+# from app.helpers.connection import make_database_connection
+from app.modify.routes import material_description
 
 #from app import mail
 
@@ -17,12 +20,17 @@ def make_database_connection():
                         TrustServerCertificate='yes')
     return cnxn
 
+# function for getting material description with material code
+
+
+
 
 # function to return the data for screen1 
 
 @blueprint.route('/get_delivery_order',methods=['GET','POST'])
 def get_delivery_order():
-    data = request.get_json(force=True)
+    # data = request.get_json(force=True)
+    data = request.args
     # exception handling for reading input parameters
     try:
         dispatch_date = data["dispatch_date"]
@@ -39,14 +47,24 @@ def get_delivery_order():
             """.format(dispatch_date)
     for key, value in data.items():
         if key == "customer_code":
-            temp_query = "AND QN_Tbl_Sales_Order_HDR.Customer_Code =  '{0}' ".format(value)
-            default_query = default_query + temp_query
+            if value == "" or value == None:
+                pass
+            else:
+                temp_query = "AND QN_Tbl_Sales_Order_HDR.Customer_Code =  '{0}' ".format(value)
+                default_query = default_query + temp_query
         if key == "order_number":
-            temp_query = "AND QN_Tbl_Sales_Order_HDR.Sales_Order_Number = '{0}' ".format(value)
-            default_query = default_query + temp_query
+            if value == "" or value == None:
+                pass
+            else:
+                temp_query = "AND QN_Tbl_Sales_Order_HDR.Sales_Order_Number = '{0}' ".format(value)
+                default_query = default_query + temp_query
         if key == "transporter":
-            temp_query = "AND QN_Tbl_Sales_Order_Transporter_Detail.Transporter_code = '{0}' ".format(value)
-            default_query = default_query + temp_query
+            if value == "" or value == None:
+                pass
+            else:
+                temp_query = "AND QN_Tbl_Sales_Order_Transporter_Detail.Transporter_code = '{0}' ".format(value)
+                default_query = default_query + temp_query
+    print(default_query)
     cnxn = make_database_connection()
     cursor = cnxn.cursor()
     cursor.execute(default_query) 
@@ -64,9 +82,10 @@ def get_delivery_order():
         temp_obj['destination'] = temp['Destination']
         temp_obj['transporter_name'] = temp['Transporter_Name']
         temp_obj['transporter_code'] = temp['Transporter_Code']
-        temp_obj['delivery_quantity'] = temp['Plan_Del_Qty']
+        temp_obj['delivery_quantity'] = float(temp['Plan_Del_Qty'])
         temp_obj["status"] = temp["Status"]
         main_results.append(temp_obj)
+    # print(main_results)
     return jsonify(status=200,data=main_results)
 
 
@@ -74,7 +93,8 @@ def get_delivery_order():
 
 @blueprint.route('/get_delivery_order_details',methods=['GET','POST'])
 def get_delivery_order_details():
-    data = request.get_json(force=True)
+    # data = request.get_json(force=True)
+    data = request.args
     # exception handling for reading input parameters
     try:
         order_number = data["order_number"]
@@ -102,10 +122,13 @@ def get_delivery_order_details():
         temp_obj['order_number'] = temp['Sales_Order_Number']
         temp_obj['line_item_number'] = temp['Line_item_Number']
         temp_obj['material_code'] = temp['Material_Code']
-        temp_obj['material_description'] = temp['Material_Name']
-        temp_obj['quantity'] = temp['Quantity']
+        # need to add code for material description
+        temp_description = material_description(dict(material_code=temp['Material_Code']),cursor)
+        temp_obj['material_description'] = temp_description['material_description']
+        temp_obj['quantity'] = float(temp['Quantity']) if temp['Quantity'] else float(0.00)
         temp_obj['status'] = temp['Status']
         main_results.append(temp_obj)
+    # print(main_results)
     return jsonify(status=200,data=main_results)
 
 
@@ -113,7 +136,7 @@ def get_delivery_order_details():
 
 @blueprint.route('/get_truck_planning_orders',methods=['GET','POST'])
 def get_truck_planning_orders():
-    data = request.get_json(force=True)
+    data = request.args
     # exception handling for reading input parameters
     try:
         dispatch_date = data["dispatch_date"]
@@ -121,25 +144,29 @@ def get_truck_planning_orders():
             return jsonify(status=400,message="Please Select Dispatch Date!")
     except:
         return jsonify(status=400,message="Please Select Dispatch Date!")
-    try:
-        customer_code = data["customer_code"]
-        if customer_code == "" or customer_code == None:
-            return jsonify(status=400,message="Please Select Customer Code!")
-    except:
-        return jsonify(status=400,message="Please Select Customer Code!")
+    default_query = """
+                             select *
+                    from QN_Tbl_Sales_Order_HDR
+                    INNER JOIN QN_Tbl_Sales_Order_Detail
+                    ON ( QN_Tbl_Sales_Order_Detail.Sales_Order_Number = QN_Tbl_Sales_Order_HDR.Sales_Order_Number)
+                    WHERE QN_Tbl_Sales_Order_HDR.Plan_Delivery_Date = '{0}'
+                    """.format(dispatch_date)
+    for key, value in data.items():
+        if key == "customer_code":
+            if value == None or value == "":
+                pass
+            else:
+                temp_query = "AND Customer_Code = '{0}' ".format(value)
+                default_query = default_query + temp_query
     import pyodbc
     cnxn = pyodbc.connect(driver='{FreeTDS}', host='115.124.119.236', database='NALCO_DISPATCH',
                       trusted_connection='no', user='Aipalatte2', password='guest2@Nalco2022',
                       TrustServerCertificate='yes')
     cursor = cnxn.cursor()
-    sql_query = """ 
-        select *
-        from QN_Tbl_Sales_Order_HDR
-        INNER JOIN QN_Tbl_Sales_Order_Detail
-        ON ( QN_Tbl_Sales_Order_Detail.Sales_Order_Number = QN_Tbl_Sales_Order_HDR.Sales_Order_Number)
-        WHERE QN_Tbl_Sales_Order_HDR.Plan_Delivery_Date = '{0}' AND Customer_Code = '{1}'
-            """.format(dispatch_date, customer_code)
-    cursor.execute(sql_query) 
+    # sql_query = """ 
+    #     AND Customer_Code = '{1}'
+    #         """.format(dispatch_date, customer_code)
+    cursor.execute(default_query) 
     columns = [column[0] for column in cursor.description]
     results = []
     main_results = []
@@ -150,12 +177,15 @@ def get_truck_planning_orders():
         temp_obj["order_number"] = temp["Sales_Order_Number"]
         temp_obj["line_item_number"] = temp["Line_item_Number"]
         temp_obj["material_code"] = temp["Material_Code"]
-        temp_obj["material_description"] = ""
+        # add code for material description
+        temp_description = material_description(dict(material_code=temp['Material_Code']),cursor)['material_description']
+        temp_obj["material_description"] = temp_description
         temp_obj["weight"] = temp["Net_Weight"]
         temp_obj["uom"] = temp["UOM"]
-        temp_obj["quantity"] = temp["Quantity"]
+        temp_obj["quantity"] = float(temp["Quantity"]) if temp["Quantity"] else float(0.00)
         temp_obj["status"] = temp["Status"]
         main_results.append(temp_obj)
+    print(main_results)
     return jsonify(status=200,data=main_results)
 
 
@@ -163,7 +193,7 @@ def get_truck_planning_orders():
 
 @blueprint.route('/get_transporter_and_truck_details',methods=['GET','POST'])
 def get_transporter_and_truck_details():
-    data = request.get_json(force=True)
+    data = request.args
     try:
         order_number = data["order_number"]
         if order_number == "" or order_number == None:
@@ -338,7 +368,7 @@ def get_last_virtual_truck_number():
         cnxn = make_database_connection()
         cursor = cnxn.cursor()
         sql_query = """
-                        select Virtual_Truck_Number from QN_Tbl_Virtual_Truck_Pre_Load_Mapping
+                        select Virtual_Truck_Number from QN_Tbl_Virtual_Truck_Planning
                     """
         cursor.execute(sql_query)
         # First case if there is no V.T.No in database
@@ -350,7 +380,7 @@ def get_last_virtual_truck_number():
             currentMonth = datetime.now().month
             currentYear = datetime.now().year
             first_virtual_truck_number = "VT" + str(currentDay) + str(currentMonth) + str(currentYear)[0:]
-            first_virtual_truck_number = first_virtual_truck_number + "0001"
+            first_virtual_truck_number = first_virtual_truck_number + "0000"
             # print(currentDay, currentMonth, currentYear)
             print(first_virtual_truck_number)
 
@@ -374,7 +404,7 @@ def get_last_virtual_truck_number():
                 return jsonify(status=200, last_virtual_truck_number = last_virtual_truck_number)
             else:
                 first_virtual_truck_number = "VT" + str(currentDay) + str(currentMonth) + str(currentYear)[0:]
-                first_virtual_truck_number = first_virtual_truck_number + "0001"
+                first_virtual_truck_number = first_virtual_truck_number + "0000"
                 print(first_virtual_truck_number)
                 return jsonify(status=200, last_virtual_truck_number=first_virtual_truck_number)
     except Exception as e:

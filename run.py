@@ -6,6 +6,7 @@ from decouple import config
 
 from config import config_dict
 from app import create_app
+from flask_cors import CORS, cross_origin
 
 
 
@@ -23,7 +24,8 @@ try:
 except KeyError:
     exit('Error: Invalid <config_mode>. Expected values [Debug, Production] ')
 
-app = create_app( app_config ) 
+app = create_app( app_config )
+CORS(app)
 # migrate = Migrate(app, db)
 
 
