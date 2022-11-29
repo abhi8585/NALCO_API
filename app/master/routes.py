@@ -13,15 +13,7 @@ from flask import jsonify, render_template, redirect, url_for, abort, flash, req
     current_app, make_response
 # import pdfkit
 import os
-
-# NALCO APIS
-
-def make_database_connection():
-    import pyodbc
-    cnxn = pyodbc.connect(driver='{FreeTDS}', host='115.124.119.236', database='NALCO_DISPATCH',
-                        trusted_connection='no', user='Aipalatte2', password='guest2@Nalco2022',
-                        TrustServerCertificate='yes')
-    return cnxn
+from app.helpers.connection import make_database_connection
 
 
 # api to return the customer codes for dropdown.
@@ -68,6 +60,7 @@ def get_transporter_codes():
             transporter_codes.append(temp["Transporter_Code"])    
         return jsonify(status=200,data=transporter_codes)
     except Exception as e:
+        
         return jsonify(status=500,message="Internal Server Error")
 
 # api to get order numbers for dropdown

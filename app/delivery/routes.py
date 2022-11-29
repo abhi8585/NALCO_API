@@ -5,25 +5,12 @@ from flask import jsonify, render_template, redirect, request, url_for
 import json
 import datetime
 # from helpers.connection import make_database_connection
-# from app.helpers.connection import make_database_connection
+from app.helpers.connection import make_database_connection
 from app.modify.routes import material_description
 
 #from app import mail
 
 from flask_mail import Message
-
-
-def make_database_connection():
-    import pyodbc
-    cnxn = pyodbc.connect(driver='{FreeTDS}', host='115.124.119.236', database='NALCO_DISPATCH',
-                        trusted_connection='no', user='Aipalatte2', password='guest2@Nalco2022',
-                        TrustServerCertificate='yes')
-    return cnxn
-
-# function for getting material description with material code
-
-
-
 
 # function to return the data for screen1 
 

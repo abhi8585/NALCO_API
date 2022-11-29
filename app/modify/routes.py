@@ -7,18 +7,10 @@ import datetime
 
 
 from flask_mail import Message
+from app.helpers.connection import make_database_connection
 
 # function to return the data for screen1 
 # need to add check if newly added line item number already exist.
-
-
-def make_database_connection():
-    import pyodbc
-    cnxn = pyodbc.connect(driver='{FreeTDS}', host='115.124.119.236', database='NALCO_DISPATCH',
-                        trusted_connection='no', user='Aipalatte2', password='guest2@Nalco2022',
-                        TrustServerCertificate='yes')
-    return cnxn
-
 
 @blueprint.route('/modify_order',methods=['GET','POST'])
 def modify_order():
