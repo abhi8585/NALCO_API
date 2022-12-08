@@ -69,7 +69,7 @@ def get_delivery_order():
         temp_obj['destination'] = temp['Destination']
         temp_obj['transporter_name'] = temp['Transporter_Name']
         temp_obj['transporter_code'] = temp['Transporter_Code']
-        temp_obj['delivery_quantity'] = float(temp['Plan_Del_Qty'])
+        # temp_obj['delivery_quantity'] = float(temp['Plan_Del_Qty'])
         temp_obj["status"] = temp["Status"]
         main_results.append(temp_obj)
     # print(main_results)
