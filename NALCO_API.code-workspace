@@ -2,6 +2,18 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../fabric-samples/commercial-paper"
+		},
+		{
+			"path": "../mst"
+		},
+		{
+			"path": "../mst/qodenext/mst"
+		},
+		{
+			"path": "../NalcoAngularDeploy"
 		}
 	],
 	"settings": {}

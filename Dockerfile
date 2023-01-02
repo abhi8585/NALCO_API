@@ -1,14 +1,12 @@
-FROM python:3.6
+# syntax=docker/dockerfile:1
 
-ENV FLASK_APP run.py
+FROM python:3.9.6-slim
 
-COPY run.py gunicorn-cfg.py requirements.txt config.py .env ./
-COPY app app
+WORKDIR /app
 
-RUN pip install -r requirements.txt
-RUN pip install gunicorn
-RUN pip install email_validator
-RUN pip install mysqlclient
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
 
-EXPOSE 8001
-CMD ["gunicorn", "--config", "gunicorn-cfg.py", "run:app"]
+COPY . .
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
